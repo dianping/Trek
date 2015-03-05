@@ -1,4 +1,4 @@
-package com.dianping.trek.server;
+package com.dianping.trek.server.handler;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelFuture;

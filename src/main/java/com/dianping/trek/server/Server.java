@@ -1,7 +1,11 @@
 package com.dianping.trek.server;
 
-import io.netty.bootstrap.ServerBootstrap;
+import com.dianping.trek.server.decoder.UncompressionDecoder;
+import com.dianping.trek.server.decoder.WUPDecoder;
+import com.dianping.trek.server.handler.DiscardServerHandler;
+import com.dianping.trek.server.handler.LogHandler;
 
+import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -9,6 +13,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.logging.LoggingHandler;
 
 public class Server {
 
@@ -28,6 +33,9 @@ public class Server {
              .childHandler(new ChannelInitializer<SocketChannel>() { // (4)
                  @Override
                  public void initChannel(SocketChannel ch) throws Exception {
+                     ch.pipeline().addLast(new WUPDecoder());
+                     ch.pipeline().addLast(new UncompressionDecoder());
+                     ch.pipeline().addLast(new LogHandler());
                      ch.pipeline().addLast(new DiscardServerHandler());
                  }
              })
