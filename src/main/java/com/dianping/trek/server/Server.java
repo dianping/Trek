@@ -1,6 +1,6 @@
 package com.dianping.trek.server;
 
-import com.dianping.trek.server.decoder.UncompressionDecoder;
+import com.dianping.trek.server.decoder.lineDecoder;
 import com.dianping.trek.server.decoder.WUPDecoder;
 import com.dianping.trek.server.handler.DiscardServerHandler;
 import com.dianping.trek.server.handler.LogHandler;
@@ -33,8 +33,8 @@ public class Server {
              .childHandler(new ChannelInitializer<SocketChannel>() { // (4)
                  @Override
                  public void initChannel(SocketChannel ch) throws Exception {
+                     ch.pipeline().addLast(new lineDecoder());
                      ch.pipeline().addLast(new WUPDecoder());
-                     ch.pipeline().addLast(new UncompressionDecoder());
                      ch.pipeline().addLast(new LogHandler());
                      ch.pipeline().addLast(new DiscardServerHandler());
                  }
