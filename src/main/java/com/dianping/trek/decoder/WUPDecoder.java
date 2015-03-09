@@ -32,7 +32,6 @@ public class WUPDecoder extends LengthFieldBasedFrameDecoder {
     
     @Override
     protected Object decode(ChannelHandlerContext ctx, ByteBuf in) throws Exception {
-        System.out.println("test");
         ByteBuf frame = (ByteBuf) super.decode(ctx, in);
         if (frame == null) {
             return null;

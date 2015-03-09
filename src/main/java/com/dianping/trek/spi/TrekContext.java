@@ -16,6 +16,7 @@ public enum TrekContext {
     
     private static Log LOG = LogFactory.getLog(TrekContext.class);
     private Map<String, Application> apps;
+    private String basePath;
     
     private TrekContext() {
         this.apps = new HashMap<String, Application>();
@@ -31,7 +32,7 @@ public enum TrekContext {
         }
     }
     
-    public Set<String> getExistApplicationNames() {
+    public Set<String> getAllApplicationNames() {
         return new HashSet<String>(apps.keySet());
     }
     
@@ -64,5 +65,13 @@ public enum TrekContext {
         } else {
             return application.getReceivedMessageStat().get();
         }
+    }
+    
+    public String getBasePath() {
+        return basePath;
+    }
+    
+    public void SetBasePath(String basePath) {
+        this.basePath = basePath;
     }
 }

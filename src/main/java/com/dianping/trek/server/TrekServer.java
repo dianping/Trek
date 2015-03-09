@@ -1,12 +1,11 @@
 package com.dianping.trek.server;
 
-import java.awt.List;
 import java.util.Map;
 
 import com.dianping.trek.api.Application;
 import com.dianping.trek.decoder.WUPDecoder;
 import com.dianping.trek.handler.ApplicationDistributionHandler;
-import com.dianping.trek.handler.DefaultCustomHandler;
+import com.dianping.trek.handler.LogFlushHandler;
 import com.dianping.trek.spi.TrekContext;
 
 import io.netty.bootstrap.ServerBootstrap;
@@ -57,8 +56,7 @@ public class TrekServer {
             // TODO Auto-generated method stub
             ch.pipeline().addLast(new WUPDecoder(1024 * 1024, 8, 4, -4, 0, true));
             ch.pipeline().addLast(new ApplicationDistributionHandler());
-            ch.pipeline().addLast(new DefaultCustomHandler());
-//            ch.pipeline().addLast(new DiscardServerHandler());
+            ch.pipeline().addLast(new LogFlushHandler());
         }
     }
 
@@ -69,6 +67,9 @@ public class TrekServer {
         } else {
             port = 8080;
         }
+        String basePath = "/tmp";
+        TrekContext.INSTANCE.addApplication("user_event", "appKey");
+        TrekContext.INSTANCE.SetBasePath(basePath);
         new TrekServer(port).run();
     }
 

@@ -43,6 +43,7 @@ public class ApplicationDistributionHandler extends ChannelInboundHandlerAdapter
             ctx.writeAndFlush(result.getReturnData());
             System.out.println("write back!");
         }
+        ctx.fireChannelReadComplete();
     }
     
     @Override

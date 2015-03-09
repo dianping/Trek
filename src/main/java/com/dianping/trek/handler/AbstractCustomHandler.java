@@ -13,30 +13,32 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.concurrent.EventExecutor;
 
-public class DefaultCustomHandler extends ChannelInboundHandlerAdapter {
-    private static Log LOG = LogFactory.getLog(DefaultCustomHandler.class);
+public abstract class AbstractCustomHandler extends ChannelInboundHandlerAdapter {
+    private static Log LOG = LogFactory.getLog(AbstractCustomHandler.class);
     
-    private TrekContext trekContext;
+    protected TrekContext trekContext;
     
-    public DefaultCustomHandler() {
+    public AbstractCustomHandler() {
         this.trekContext = TrekContext.INSTANCE;
     }
     
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        Set<String> applications = trekContext.getExistApplicationNames();
+    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+        Set<String> applications = trekContext.getAllApplicationNames();
         EventExecutor executor = ctx.executor();
         for (String app : applications) {
-            executor.execute(new LoggerHandler(trekContext.getApplication(app)));
+            executor.execute(new CustomMessageHandler(trekContext.getApplication(app)));
         }
     }
     
-    class LoggerHandler implements Runnable {
+    public abstract void custom(String appName, String message);
+    
+    class CustomMessageHandler implements Runnable {
 
         private boolean running;
         private Application app;
         private BlockingQueue<String> queue;
-        public LoggerHandler(Application app) {
+        public CustomMessageHandler(Application app) {
             this.app = app;
             this.running = true;
             this.queue = app.getMessageQueue();
@@ -47,15 +49,12 @@ public class DefaultCustomHandler extends ChannelInboundHandlerAdapter {
             while (running) {
                 try {
                     String message = queue.take();
-                    app.getAppName();
-                    //TODO log to disk
+                    custom(app.getAppName(), message);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    LOG.error("Custom handler thread " + app.getAppName() + " interrupted", e);
                     running = false;
                 }
             }
-            
         }
-        
     }
 }
