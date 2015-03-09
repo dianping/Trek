@@ -1,4 +1,6 @@
-package com.dianping.trek.server.decoder;
+package com.dianping.trek.decoder;
+
+import java.net.InetSocketAddress;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -21,16 +23,26 @@ public class WUPDecoder extends LengthFieldBasedFrameDecoder {
     }
     
     @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        InetSocketAddress address = (InetSocketAddress) ctx.channel().remoteAddress();
+        String ip = address.getAddress().getHostAddress();
+        System.out.println("Connected from " + ip);
+        ctx.fireChannelActive();
+    }
+    
+    @Override
     protected Object decode(ChannelHandlerContext ctx, ByteBuf in) throws Exception {
+        System.out.println("test");
         ByteBuf frame = (ByteBuf) super.decode(ctx, in);
         if (frame == null) {
             return null;
         }
-        in.skipBytes(SIZE_BEFORE_LENGTH_FIELD);
-        int lengthFieldValue = in.readInt();
-        int inputSize = SIZE_BEFORE_LENGTH_FIELD + Integer.SIZE + lengthFieldValue;
+        ByteBuf message =  frame.slice();
+        message.skipBytes(SIZE_BEFORE_LENGTH_FIELD);
+        int lengthFieldValue = message.readInt();
+        int inputSize = SIZE_BEFORE_LENGTH_FIELD + lengthFieldValue;
         byte[] inputData = new byte[inputSize];
-        in.getBytes(0, inputData);
+        message.getBytes(0, inputData);
         if(coder.isValidMsg(inputData)){
             DecodeResult result=coder.decode(inputData);
             System.out.println(result);

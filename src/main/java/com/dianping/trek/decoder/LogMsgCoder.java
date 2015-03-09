@@ -1,4 +1,4 @@
-package com.dianping.trek.server.decoder;
+package com.dianping.trek.decoder;
 
 public interface LogMsgCoder {
 

@@ -1,9 +1,13 @@
-package com.dianping.trek.server.handler;
+package com.dianping.trek.handler;
+
+import java.util.List;
+import java.util.concurrent.BlockingQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.dianping.trek.server.decoder.DecodeResult;
+import com.dianping.trek.decoder.DecodeResult;
+import com.dianping.trek.spi.TrekContext;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -13,13 +17,32 @@ public class ApplicationDistributionHandler extends ChannelInboundHandlerAdapter
     private static long ALARM_THRESHOLD = 100L; 
     private long exceptionCount = 0L;
     
+    private TrekContext trekCtx;
+    
+    
+    public ApplicationDistributionHandler() {
+        this.trekCtx = TrekContext.INSTANCE;
+    }
+    
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         DecodeResult result = (DecodeResult) msg;
+        String appName = result.getLogName();
+        BlockingQueue<String> appMessageQueue;
+        if ((appMessageQueue = trekCtx.getApplicationMessageQueue(appName)) != null) {
+            List<String> logList = result.getLogList();
+            for (String log : logList) {
+                appMessageQueue.offer(log);
+            }
+            trekCtx.updateReceivedMessageStat(appName, logList.size());
+        } else {
+            LOG.debug("Can not find application by " + appName);
+        }
+        
         if (result.isNeedBackMsg()) {
             ctx.writeAndFlush(result.getReturnData());
+            System.out.println("write back!");
         }
-        result.getLogName();
     }
     
     @Override

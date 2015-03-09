@@ -1,8 +1,13 @@
 package com.dianping.trek.server;
 
-import com.dianping.trek.server.decoder.WUPDecoder;
-import com.dianping.trek.server.handler.DiscardServerHandler;
-import com.dianping.trek.server.handler.ApplicationDistributionHandler;
+import java.awt.List;
+import java.util.Map;
+
+import com.dianping.trek.api.Application;
+import com.dianping.trek.decoder.WUPDecoder;
+import com.dianping.trek.handler.ApplicationDistributionHandler;
+import com.dianping.trek.handler.DefaultCustomHandler;
+import com.dianping.trek.spi.TrekContext;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -13,14 +18,14 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
-public class Server {
-
+public class TrekServer {
+    
     private int port;
 
-    public Server(int port) {
+    public TrekServer(int port) {
         this.port = port;
     }
-
+    
     public void run() throws Exception {
         EventLoopGroup bossGroup = new NioEventLoopGroup(); // (1)
         EventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -50,12 +55,11 @@ public class Server {
         @Override
         protected void initChannel(SocketChannel ch) throws Exception {
             // TODO Auto-generated method stub
-            ch.pipeline().addLast(new WUPDecoder(1024 * 1024, 8, 4, -4, 0, false));
+            ch.pipeline().addLast(new WUPDecoder(1024 * 1024, 8, 4, -4, 0, true));
             ch.pipeline().addLast(new ApplicationDistributionHandler());
-            
-            ch.pipeline().addLast(new DiscardServerHandler());
+            ch.pipeline().addLast(new DefaultCustomHandler());
+//            ch.pipeline().addLast(new DiscardServerHandler());
         }
-         
     }
 
     public static void main(String[] args) throws Exception {
@@ -65,6 +69,11 @@ public class Server {
         } else {
             port = 8080;
         }
-        new Server(port).run();
+        new TrekServer(port).run();
+    }
+
+    public static Map<String, Application> getApplicationMap() {
+        // TODO Auto-generated method stub
+        return null;
     }
 }
