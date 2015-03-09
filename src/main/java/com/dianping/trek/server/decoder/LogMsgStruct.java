@@ -1,4 +1,4 @@
-package com.dianping.trek.server;
+package com.dianping.trek.server.decoder;
 
 import java.util.ArrayList;
 import java.util.List;

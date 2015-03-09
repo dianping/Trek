@@ -6,7 +6,6 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.dianping.trek.server.LogMsgStruct;
 import com.dianping.trek.util.CompressUtil;
 import com.qq.jce.wup.UniPacket;
 
@@ -49,7 +48,8 @@ public class LogMsgCoderImpl implements  LogMsgCoder {
 	}
 
 	
-	@Override
+	@SuppressWarnings("unused")
+    @Override
 	public boolean isValidMsg(byte[] data){
 		if(data==null || data.length<MIN_HEAD_SIZE){
 			return false;
@@ -70,7 +70,8 @@ public class LogMsgCoderImpl implements  LogMsgCoder {
 	}
 
 
-	@Override
+	@SuppressWarnings("unused")
+    @Override
 	public DecodeResult decode(byte[] data) throws Exception {
 		
 		ByteBuffer buffer=ByteBuffer.wrap(data);

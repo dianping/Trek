@@ -1,9 +1,8 @@
 package com.dianping.trek.server;
 
-import com.dianping.trek.server.decoder.lineDecoder;
 import com.dianping.trek.server.decoder.WUPDecoder;
 import com.dianping.trek.server.handler.DiscardServerHandler;
-import com.dianping.trek.server.handler.LogHandler;
+import com.dianping.trek.server.handler.ApplicationDistributionHandler;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -13,7 +12,6 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.logging.LoggingHandler;
 
 public class Server {
 
@@ -30,15 +28,7 @@ public class Server {
             ServerBootstrap b = new ServerBootstrap(); // (2)
             b.group(bossGroup, workerGroup)
              .channel(NioServerSocketChannel.class) // (3)
-             .childHandler(new ChannelInitializer<SocketChannel>() { // (4)
-                 @Override
-                 public void initChannel(SocketChannel ch) throws Exception {
-                     ch.pipeline().addLast(new lineDecoder());
-                     ch.pipeline().addLast(new WUPDecoder());
-                     ch.pipeline().addLast(new LogHandler());
-                     ch.pipeline().addLast(new DiscardServerHandler());
-                 }
-             })
+             .childHandler(new FilterChannelChain())
              .option(ChannelOption.SO_BACKLOG, 128)          // (5)
              .childOption(ChannelOption.SO_KEEPALIVE, true); // (6)
 
@@ -53,6 +43,19 @@ public class Server {
             workerGroup.shutdownGracefully();
             bossGroup.shutdownGracefully();
         }
+    }
+    
+    class FilterChannelChain extends ChannelInitializer<SocketChannel> {
+
+        @Override
+        protected void initChannel(SocketChannel ch) throws Exception {
+            // TODO Auto-generated method stub
+            ch.pipeline().addLast(new WUPDecoder(1024 * 1024, 8, 4, -4, 0, false));
+            ch.pipeline().addLast(new ApplicationDistributionHandler());
+            
+            ch.pipeline().addLast(new DiscardServerHandler());
+        }
+         
     }
 
     public static void main(String[] args) throws Exception {
