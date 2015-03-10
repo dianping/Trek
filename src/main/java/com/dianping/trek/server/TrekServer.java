@@ -1,11 +1,12 @@
 package com.dianping.trek.server;
 
 import java.util.Map;
+import java.util.Properties;
 
-import com.dianping.trek.api.Application;
 import com.dianping.trek.decoder.WUPDecoder;
 import com.dianping.trek.handler.ApplicationDistributionHandler;
 import com.dianping.trek.handler.LogFlushHandler;
+import com.dianping.trek.spi.Application;
 import com.dianping.trek.spi.TrekContext;
 
 import io.netty.bootstrap.ServerBootstrap;
@@ -61,20 +62,17 @@ public class TrekServer {
     }
 
     public static void main(String[] args) throws Exception {
+        Properties prop = new Properties();
+        prop.load(TrekServer.class.getClassLoader().getResourceAsStream("config.properties"));
         int port;
         if (args.length > 0) {
             port = Integer.parseInt(args[0]);
         } else {
-            port = 8080;
+            port = Integer.parseInt(prop.getProperty("trek.port", "8080"));
         }
-        String basePath = "/tmp";
+        String basePath = prop.getProperty("trek.basePath", "/tmp");
         TrekContext.INSTANCE.addApplication("user_event", "appKey");
         TrekContext.INSTANCE.SetBasePath(basePath);
         new TrekServer(port).run();
-    }
-
-    public static Map<String, Application> getApplicationMap() {
-        // TODO Auto-generated method stub
-        return null;
     }
 }

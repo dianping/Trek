@@ -9,8 +9,6 @@ import java.util.concurrent.BlockingQueue;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.dianping.trek.api.Application;
-
 public enum TrekContext {
     INSTANCE;
     

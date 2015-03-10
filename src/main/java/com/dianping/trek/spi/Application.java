@@ -1,4 +1,4 @@
-package com.dianping.trek.api;
+package com.dianping.trek.spi;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;

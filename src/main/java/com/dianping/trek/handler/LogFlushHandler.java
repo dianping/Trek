@@ -1,5 +1,6 @@
 package com.dianping.trek.handler;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,7 +17,10 @@ public class LogFlushHandler extends AbstractCustomHandler {
         basePath = trekContext.getBasePath();
         appenders = new HashMap<String, BizerAppender>();
         for (String appName : trekContext.getAllApplicationNames()) {
-            appenders.put(appName, new BizerAppender(basePath, appName));
+            try {
+                appenders.put(appName, new BizerAppender(basePath, appName));
+            } catch (IOException e) {
+            }
         }
     }
     @Override
@@ -25,7 +29,7 @@ public class LogFlushHandler extends AbstractCustomHandler {
         if (appender != null) {
             appender.append(
                 new LoggingEvent(
-                        null,
+                        Logger.class.getName(),
                         Logger.getLogger(appName),
                         Level.INFO,
                         message,
