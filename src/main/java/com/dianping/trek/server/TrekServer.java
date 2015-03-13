@@ -1,12 +1,17 @@
 package com.dianping.trek.server;
 
-import java.util.Map;
 import java.util.Properties;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import com.dianping.trek.decoder.WUPDecoder;
 import com.dianping.trek.handler.ApplicationDistributionHandler;
-import com.dianping.trek.handler.LogFlushHandler;
-import com.dianping.trek.spi.Application;
+import com.dianping.trek.handler.WorkerThreadPool;
+import com.dianping.trek.spi.Processor;
 import com.dianping.trek.spi.TrekContext;
 
 import io.netty.bootstrap.ServerBootstrap;
@@ -19,14 +24,18 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 public class TrekServer {
-    
+    private static Log LOG = LogFactory.getLog(TrekServer.class);
     private int port;
+    private WorkerThreadPool workerPool;
 
     public TrekServer(int port) {
         this.port = port;
     }
     
     public void run() throws Exception {
+        workerPool = new WorkerThreadPool();
+        workerPool.refresh();
+        
         EventLoopGroup bossGroup = new NioEventLoopGroup(); // (1)
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
@@ -54,10 +63,8 @@ public class TrekServer {
 
         @Override
         protected void initChannel(SocketChannel ch) throws Exception {
-            // TODO Auto-generated method stub
             ch.pipeline().addLast(new WUPDecoder(1024 * 1024, 8, 4, -4, 0, true));
             ch.pipeline().addLast(new ApplicationDistributionHandler());
-            ch.pipeline().addLast(new LogFlushHandler());
         }
     }
 
@@ -71,8 +78,28 @@ public class TrekServer {
             port = Integer.parseInt(prop.getProperty("trek.port", "8080"));
         }
         String basePath = prop.getProperty("trek.basePath", "/tmp");
-        TrekContext.INSTANCE.addApplication("user_event", "appKey");
-        TrekContext.INSTANCE.SetBasePath(basePath);
+        TrekContext.SetBasePath(basePath);
+        String appJsonStr = prop.getProperty("trek.app");
+        
+        if (appJsonStr != null) {
+            JSONArray appArray = new JSONArray(appJsonStr);
+            for (int i = 0; i < appArray.length(); i++) {
+                JSONObject appObject = appArray.getJSONObject(i);
+                String name = (String)appObject.get("name");
+                String key = (String)appObject.get("key");
+                try {
+                    String processorClassName = (String) appObject.get("processorClass");
+                    @SuppressWarnings("unchecked")
+                    Class<? extends Processor> processorClass = (Class<? extends Processor>) Class.forName(processorClassName);
+                    TrekContext.INSTANCE.addApplication(name, key, processorClass);
+                } catch (JSONException e) {
+                    TrekContext.INSTANCE.addApplication(name, key);
+                } catch (Exception e) {
+                    LOG.error("Stop trek server cause fail to load processor", e);
+                    System.exit(1);
+                }
+            }
+        }
         new TrekServer(port).run();
     }
 }

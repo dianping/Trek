@@ -11,6 +11,7 @@ import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 
 public class WUPDecoder extends LengthFieldBasedFrameDecoder {
     private static final Log LOG = LogFactory.getLog(WUPDecoder.class);
+    private static final int SUBMIT_MAGIC_NUMBER = 0xfeedcafe;
     private static final int SIZE_BEFORE_LENGTH_FIELD = 8;//magic(4bytes)+charsetFlag(4bytes)
     private LogMsgCoder coder;
     
@@ -37,18 +38,25 @@ public class WUPDecoder extends LengthFieldBasedFrameDecoder {
             return null;
         }
         ByteBuf message =  frame.slice();
-        message.skipBytes(SIZE_BEFORE_LENGTH_FIELD);
-        int lengthFieldValue = message.readInt();
-        int inputSize = SIZE_BEFORE_LENGTH_FIELD + lengthFieldValue;
-        byte[] inputData = new byte[inputSize];
-        message.getBytes(0, inputData);
-        if(coder.isValidMsg(inputData)){
-            DecodeResult result=coder.decode(inputData);
-            System.out.println(result);
-            return result;
-        } else {
-            LOG.error("invlid message");
+        if (SUBMIT_MAGIC_NUMBER == message.readInt()) {
+            int type = message.readInt();
+            int lengthFieldValue = message.readInt();
+            //TODO handle submit message
             return null;
+        } else {
+            int charset = message.readInt();
+            int lengthFieldValue = message.readInt();
+            int inputSize = SIZE_BEFORE_LENGTH_FIELD + lengthFieldValue;
+            byte[] inputData = new byte[inputSize];
+            message.getBytes(0, inputData);
+            if(coder.isValidMsg(inputData)){
+                DecodeResult result=coder.decode(inputData);
+                System.out.println(result);
+                return result;
+            } else {
+                LOG.error("invlid message");
+                return null;
+            }
         }
     }
 }

@@ -1,10 +1,10 @@
 package com.dianping.trek.spi;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -14,20 +14,33 @@ public enum TrekContext {
     
     private static Log LOG = LogFactory.getLog(TrekContext.class);
     private Map<String, Application> apps;
-    private String basePath;
+    private static String DEFALUT_BASE_PATH;
     
     private TrekContext() {
-        this.apps = new HashMap<String, Application>();
+        this.apps = new ConcurrentHashMap<String, Application>();
     }
     
-    public boolean addApplication(String appName, String appKey) {
+    public boolean addApplication(String appName, String appKey, Class<? extends Processor> processorClass, String outputDir) {
         if (apps.containsKey(appName)) {
             LOG.warn("The application name '" + appName + "' has already exist!");
             return false;
         } else {
-            apps.put(appName, new Application(appName, appKey));
+            Application application = new Application(appName, appKey, processorClass, outputDir);
+            apps.put(appName, application);
             return true;
         }
+    }
+    
+    public boolean addApplication(String appName, String appKey) {
+        return addApplication(appName, appKey, BasicProcessor.class, DEFALUT_BASE_PATH);
+    }
+
+    public boolean addApplication(String appName, String appKey, Class<? extends Processor> processorClass) {
+        return addApplication(appName, appKey, processorClass, DEFALUT_BASE_PATH);
+    }
+    
+    public boolean addApplication(String appName, String appKey, String outputDir) {
+        return addApplication(appName, appKey, BasicProcessor.class, outputDir);
     }
     
     public Set<String> getAllApplicationNames() {
@@ -65,11 +78,11 @@ public enum TrekContext {
         }
     }
     
-    public String getBasePath() {
-        return basePath;
+    public static String getDefaultBasePath() {
+        return DEFALUT_BASE_PATH;
     }
     
-    public void SetBasePath(String basePath) {
-        this.basePath = basePath;
+    public static void SetBasePath(String defaultBasePath) {
+        DEFALUT_BASE_PATH = defaultBasePath;
     }
 }

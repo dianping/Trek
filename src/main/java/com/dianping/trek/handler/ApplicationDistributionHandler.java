@@ -26,6 +26,10 @@ public class ApplicationDistributionHandler extends ChannelInboundHandlerAdapter
     
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        if (msg == null) {
+            // control message
+            return;
+        }
         DecodeResult result = (DecodeResult) msg;
         String appName = result.getLogName();
         BlockingQueue<String> appMessageQueue;
@@ -36,21 +40,21 @@ public class ApplicationDistributionHandler extends ChannelInboundHandlerAdapter
             }
             trekCtx.updateReceivedMessageStat(appName, logList.size());
         } else {
-            LOG.debug("Can not find application by " + appName);
+            LOG.error("Can not find application by " + appName);
+            exceptionCount++;
         }
         
         if (result.isNeedBackMsg()) {
             ctx.writeAndFlush(result.getReturnData());
             System.out.println("write back!");
         }
-        ctx.fireChannelReadComplete();
     }
     
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
             throws Exception {
         if (exceptionCount++ > ALARM_THRESHOLD) {
-            LOG.equals("Exceptions have occured more than " + ALARM_THRESHOLD + " times!");
+            LOG.fatal("Exceptions have occured more than " + ALARM_THRESHOLD + " times!");
         }
         ctx.fireExceptionCaught(cause);
     }

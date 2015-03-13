@@ -4,17 +4,24 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.dianping.trek.util.BizerAppender;
+import com.dianping.trek.util.ReflectionUtils;
+
 public class Application {
     private final String appName;
     private final String appKey;
     private final BlockingQueue<String> messageQueue;
     private final AtomicLong receivedMessageStat;
+    private final BizerAppender appender;
+    private Processor processor;
     
-    public Application(String appName, String appKey) {
+    public Application(String appName, String appKey, Class<? extends Processor> processorClass, String basePath) {
         this.appName = appName;
         this.appKey = appKey;
         this.messageQueue = new LinkedBlockingQueue<String>();
         this.receivedMessageStat = new AtomicLong(0);
+        this.appender = new BizerAppender(basePath, appName);
+        this.processor = ReflectionUtils.newInstance(processorClass);
     }
 
     public String getAppName() {
@@ -31,6 +38,14 @@ public class Application {
 
     public AtomicLong getReceivedMessageStat() {
         return receivedMessageStat;
+    }
+
+    public BizerAppender getAppender() {
+        return appender;
+    }
+
+    public Processor getProcessor() {
+        return processor;
     }
 
     @Override
@@ -66,6 +81,7 @@ public class Application {
 
     @Override
     public String toString() {
-        return "Application [appName=" + appName + ", appKey=" + appKey + "]";
+        return "Application [appName=" + appName + ", appKey=" + appKey
+                + ", appender=" + appender + "]";
     }
 }
