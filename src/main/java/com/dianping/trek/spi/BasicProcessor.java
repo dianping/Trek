@@ -2,17 +2,28 @@ package com.dianping.trek.spi;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Category;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.spi.LoggingEvent;
 
 public class BasicProcessor implements Processor {
     private static Log LOG = LogFactory.getLog(BasicProcessor.class);
-    protected Application app;
-    
+    private Application app;
+    Category category;
+    private String fqnOfCategoryClass;
+
     @Override
     public void setApp(Application app) {
-        this.app = app;
+        if (this.app == null) {
+            this.app = app;
+            this.fqnOfCategoryClass = Logger.class.getName();
+            this.category = Logger.getLogger(app.getAppName());
+        }
+    }
+    
+    public Application getApp() {
+        return app;
     }
     
     @Override
@@ -26,14 +37,16 @@ public class BasicProcessor implements Processor {
             return;
         }
         LOG.trace("proceesed: " + processedLine);
+        synchronized (category) {
         app.getAppender().append(
             new LoggingEvent(
-                    Logger.class.getName(),
-                    Logger.getLogger(app.getAppName()),
+                    fqnOfCategoryClass,
+                    category,
                     Level.INFO,
                     processedLine,
                     null
             )
         );
+        }
     }
 }

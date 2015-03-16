@@ -12,14 +12,14 @@ public class BizerAppender extends DailyRollingFileAppender {
     private String basePath;
     private String appName;
     
-    public BizerAppender(String basePath, String appName) {
+    public BizerAppender(String basePath, String appName, boolean immediateFlush) {
         this.basePath = basePath;
         this.appName = appName;
         try {
             super.setFile(basePath + File.separator + appName, true, false, 1024);
         } catch (IOException e) {
             try {
-                super.setFile(TrekContext.getDefaultBasePath() + File.separator + appName, true, false, 1024);
+                super.setFile(TrekContext.getDefaultLogBaseDir() + File.separator + appName, true, false, 1024);
             } catch (IOException e1) {
                 e1.printStackTrace();
             }
@@ -27,6 +27,7 @@ public class BizerAppender extends DailyRollingFileAppender {
         super.setDatePattern("'.'yyyy-MM-dd.HH");
         super.setLayout(new PatternLayout());
         super.activateOptions();
+        super.setImmediateFlush(immediateFlush);
     }
 
     @Override

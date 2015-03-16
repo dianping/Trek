@@ -5,6 +5,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.dianping.trek.util.BizerAppender;
+import com.dianping.trek.util.Constants;
 import com.dianping.trek.util.ReflectionUtils;
 
 public class Application {
@@ -13,14 +14,20 @@ public class Application {
     private final BlockingQueue<String> messageQueue;
     private final AtomicLong receivedMessageStat;
     private final BizerAppender appender;
+    private boolean immediateFlush;
+    private int numWorker;
     private Processor processor;
     
-    public Application(String appName, String appKey, Class<? extends Processor> processorClass, String basePath) {
+    public Application(String appName, String appKey,
+            Class<? extends Processor> processorClass, String basePath,
+            int numWorker, boolean immediateFlush) {
         this.appName = appName;
         this.appKey = appKey;
-        this.messageQueue = new LinkedBlockingQueue<String>();
+        this.messageQueue = new LinkedBlockingQueue<String>(Constants.DEFAULT_QUEUE_SIZE);
         this.receivedMessageStat = new AtomicLong(0);
-        this.appender = new BizerAppender(basePath, appName);
+        this.appender = new BizerAppender(basePath, appName, immediateFlush);
+        this.immediateFlush = immediateFlush;
+        this.numWorker = numWorker;
         this.processor = ReflectionUtils.newInstance(processorClass);
     }
 
@@ -46,6 +53,23 @@ public class Application {
 
     public Processor getProcessor() {
         return processor;
+    }
+
+    public boolean isImmediateFlush() {
+        return immediateFlush;
+    }
+
+    public void setImmediateFlush(boolean immediateFlush) {
+        this.appender.setImmediateFlush(immediateFlush);
+        this.immediateFlush = immediateFlush;
+    }
+
+    public int getNumWorker() {
+        return numWorker;
+    }
+
+    public void setNumWorker(int numWorker) {
+        this.numWorker = numWorker;
     }
 
     @Override

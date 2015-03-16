@@ -50,13 +50,13 @@ public class Main {
         
         Socket socket = new Socket("localhost", 8080);
         OutputStream outputStream = socket.getOutputStream();
-        for (int i = 0; i < 2; i++) {
-            outputStream.write(inputData);
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 1000; j++) {
+                outputStream.write(inputData);
+            }
             outputStream.flush();
-            Thread.sleep(100);
+            Thread.sleep(1);
         }
         socket.close();
-        
     }
-
 }
