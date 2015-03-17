@@ -4,6 +4,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.dianping.trek.server.MessageChunk;
 import com.dianping.trek.util.BizerAppender;
 import com.dianping.trek.util.Constants;
 import com.dianping.trek.util.ReflectionUtils;
@@ -11,19 +12,19 @@ import com.dianping.trek.util.ReflectionUtils;
 public class Application {
     private final String appName;
     private final String appKey;
-    private final BlockingQueue<String> messageQueue;
+    private final BlockingQueue<MessageChunk> messageQueue;
     private final AtomicLong receivedMessageStat;
     private final BizerAppender appender;
     private boolean immediateFlush;
     private int numWorker;
-    private Processor processor;
+    private BasicProcessor processor;
     
     public Application(String appName, String appKey,
-            Class<? extends Processor> processorClass, String basePath,
+            Class<? extends BasicProcessor> processorClass, String basePath,
             int numWorker, boolean immediateFlush) {
         this.appName = appName;
         this.appKey = appKey;
-        this.messageQueue = new LinkedBlockingQueue<String>(Constants.DEFAULT_QUEUE_SIZE);
+        this.messageQueue = new LinkedBlockingQueue<MessageChunk>(Constants.DEFAULT_QUEUE_SIZE);
         this.receivedMessageStat = new AtomicLong(0);
         this.appender = new BizerAppender(basePath, appName, immediateFlush);
         this.immediateFlush = immediateFlush;
@@ -39,7 +40,7 @@ public class Application {
         return appKey;
     }
 
-    public BlockingQueue<String> getMessageQueue() {
+    public BlockingQueue<MessageChunk> getMessageQueue() {
         return messageQueue;
     }
 
@@ -51,7 +52,7 @@ public class Application {
         return appender;
     }
 
-    public Processor getProcessor() {
+    public BasicProcessor getProcessor() {
         return processor;
     }
 

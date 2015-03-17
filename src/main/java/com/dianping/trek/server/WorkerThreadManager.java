@@ -9,7 +9,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.dianping.trek.spi.Application;
-import com.dianping.trek.spi.Processor;
+import com.dianping.trek.spi.BasicProcessor;
 import com.dianping.trek.spi.TrekContext;
 
 public class WorkerThreadManager {
@@ -31,8 +31,8 @@ public class WorkerThreadManager {
                 continue;
             }
             Application app = trekContext.getApplication(appName);
-            BlockingQueue<String> queue = app.getMessageQueue();
-            Processor processor = app.getProcessor();
+            BlockingQueue<MessageChunk> queue = app.getMessageQueue();
+            BasicProcessor processor = app.getProcessor();
             processor.setApp(app);
             int numWorker = app.getNumWorker();
             Set<Worker> workers = new CopyOnWriteArraySet<Worker>();
@@ -63,11 +63,11 @@ public class WorkerThreadManager {
     
     class Worker extends Thread {
 
-        private boolean running;
+        private volatile boolean running;
         private String  appName;
-        private BlockingQueue<String> queue;
-        private Processor processor;
-        public Worker(String appName, BlockingQueue<String> queue, Processor processor) {
+        private BlockingQueue<MessageChunk> queue;
+        private BasicProcessor processor;
+        public Worker(String appName, BlockingQueue<MessageChunk> queue, BasicProcessor processor) {
             this.running = true;
             this.appName = appName;
             this.queue = queue;
@@ -78,9 +78,8 @@ public class WorkerThreadManager {
         public void run() {
             while (running) {
                 try {
-                    String message = queue.take();
-                    String handledMessage = processor.processOneLine(message);
-                    processor.logToDisk(handledMessage);
+                    MessageChunk unprocessedChunk = queue.take();
+                    processAndAck(unprocessedChunk, processor);
                 } catch (InterruptedException e) {
                     LOG.error("Custom handler thread " + appName + " interrupted", e);
                     running = false;
@@ -88,7 +87,18 @@ public class WorkerThreadManager {
                     LOG.error("Oops, worker got an exception!", t);
                 }
             }
-            queue.clear();
+            for (MessageChunk unprocessedChunk : queue) {
+                processAndAck(unprocessedChunk, processor);
+            }
+        }
+
+        private void processAndAck(MessageChunk unprocessedChunk, BasicProcessor processor) {
+            MessageChunk processedChunk = processor.processOneChunk(unprocessedChunk);
+            processor.logToDisk(processedChunk);
+            processedChunk.clearUnprocessedMessage();
+            if (processedChunk.getResult().isNeedBackMsg()) {
+                processedChunk.getCtx().writeAndFlush(processedChunk.getResult().getReturnData());
+            }
         }
         
         public void stopGracefully() {

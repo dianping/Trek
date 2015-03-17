@@ -10,7 +10,7 @@ import org.json.JSONObject;
 
 import com.dianping.trek.decoder.WUPDecoder;
 import com.dianping.trek.handler.ApplicationDistributionHandler;
-import com.dianping.trek.spi.Processor;
+import com.dianping.trek.spi.BasicProcessor;
 import com.dianping.trek.spi.TrekContext;
 import com.dianping.trek.util.CommonUtil;
 import com.dianping.trek.util.Constants;
@@ -23,6 +23,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.bytes.ByteArrayEncoder;
 
 public class TrekServer {
     private static Log LOG = LogFactory.getLog(TrekServer.class);
@@ -37,18 +38,18 @@ public class TrekServer {
         workerManger = new WorkerThreadManager();
         workerManger.startAll();
         
-        EventLoopGroup bossGroup = new NioEventLoopGroup(); // (1)
+        EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
-            ServerBootstrap b = new ServerBootstrap(); // (2)
+            ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup)
-             .channel(NioServerSocketChannel.class) // (3)
+             .channel(NioServerSocketChannel.class)
              .childHandler(new FilterChannelChain())
-             .option(ChannelOption.SO_BACKLOG, 128)          // (5)
-             .childOption(ChannelOption.SO_KEEPALIVE, true); // (6)
+             .option(ChannelOption.SO_BACKLOG, 128)
+             .childOption(ChannelOption.SO_KEEPALIVE, false);
 
             // Bind and start to accept incoming connections.
-            ChannelFuture f = b.bind(port).sync(); // (7)
+            ChannelFuture f = b.bind(port).sync();
 
             // Wait until the server socket is closed.
             // In this example, this does not happen, but you can do that to gracefully
@@ -65,6 +66,7 @@ public class TrekServer {
         @Override
         protected void initChannel(SocketChannel ch) throws Exception {
             ch.pipeline().addLast(new WUPDecoder(1024 * 1024, 8, 4, -4, 0, true));
+            ch.pipeline().addLast(new ByteArrayEncoder());
             ch.pipeline().addLast(new ApplicationDistributionHandler());
         }
     }
@@ -99,7 +101,7 @@ public class TrekServer {
                 try {
                     String processorClassName = CommonUtil.getString(appObject, Constants.PROCESS_CLASS_KEY, Constants.DEFAULT_PROCESSOR_CLASS);
                     @SuppressWarnings("unchecked")
-                    Class<? extends Processor> processorClass = (Class<? extends Processor>) Class.forName(processorClassName);
+                    Class<? extends BasicProcessor> processorClass = (Class<? extends BasicProcessor>) Class.forName(processorClassName);
                     int numWorker = CommonUtil.getInteger(appObject, Constants.NUM_WORKER_KEY, Constants.DEFAULT_WORKER_NUMBER);
                     TrekContext.INSTANCE.addApplication(name, key, processorClass, numWorker, immediateFlush);
                 } catch (Exception e) {

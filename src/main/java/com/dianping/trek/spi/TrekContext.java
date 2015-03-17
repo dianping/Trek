@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.dianping.trek.server.MessageChunk;
 import com.dianping.trek.util.Constants;
 
 public enum TrekContext {
@@ -23,7 +24,7 @@ public enum TrekContext {
     }
     
     public boolean addApplication(String appName, String appKey,
-            Class<? extends Processor> processorClass, String outputDir,
+            Class<? extends BasicProcessor> processorClass, String outputDir,
             int numWorker, boolean immediateFlush) {
         if (apps.containsKey(appName)) {
             LOG.warn("The application name '" + appName + "' has already exist!");
@@ -39,7 +40,7 @@ public enum TrekContext {
         return addApplication(appName, appKey, BasicProcessor.class, defaultLogBaseDir, Constants.DEFAULT_WORKER_NUMBER, false);
     }
 
-    public boolean addApplication(String appName, String appKey, Class<? extends Processor> processorClass, int numWorker, boolean immediateFlush) {
+    public boolean addApplication(String appName, String appKey, Class<? extends BasicProcessor> processorClass, int numWorker, boolean immediateFlush) {
         return addApplication(appName, appKey, processorClass, defaultLogBaseDir, numWorker, immediateFlush);
     }
     
@@ -55,7 +56,7 @@ public enum TrekContext {
         return apps.get(appName);
     }
     
-    public BlockingQueue<String> getApplicationMessageQueue(String appName) {
+    public BlockingQueue<MessageChunk> getApplicationMessageQueue(String appName) {
         Application application = apps.get(appName);
         if (application == null) {
             return null;

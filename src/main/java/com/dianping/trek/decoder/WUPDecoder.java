@@ -27,10 +27,11 @@ public class WUPDecoder extends LengthFieldBasedFrameDecoder {
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         InetSocketAddress address = (InetSocketAddress) ctx.channel().remoteAddress();
         String ip = address.getAddress().getHostAddress();
-        System.out.println("Connected from " + ip);
+        LOG.info("Connected from " + ip);
         ctx.fireChannelActive();
     }
     
+    @SuppressWarnings("unused")
     @Override
     protected Object decode(ChannelHandlerContext ctx, ByteBuf in) throws Exception {
         ByteBuf frame = (ByteBuf) super.decode(ctx, in);
@@ -41,7 +42,7 @@ public class WUPDecoder extends LengthFieldBasedFrameDecoder {
         if (SUBMIT_MAGIC_NUMBER == message.readInt()) {
             int type = message.readInt();
             int lengthFieldValue = message.readInt();
-            //TODO handle submit message
+            //TODO handle control message
             return null;
         } else {
             int charset = message.readInt();
@@ -51,7 +52,6 @@ public class WUPDecoder extends LengthFieldBasedFrameDecoder {
             message.getBytes(0, inputData);
             if(coder.isValidMsg(inputData)){
                 DecodeResult result=coder.decode(inputData);
-                System.out.println(result);
                 return result;
             } else {
                 LOG.error("invlid message");

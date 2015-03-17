@@ -50,7 +50,7 @@ public class Main {
         
         Socket socket = new Socket("localhost", 8080);
         OutputStream outputStream = socket.getOutputStream();
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 1000000; i++) {
             for (int j = 0; j < 1000; j++) {
                 outputStream.write(inputData);
             }

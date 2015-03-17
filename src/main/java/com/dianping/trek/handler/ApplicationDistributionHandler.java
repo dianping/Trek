@@ -1,12 +1,12 @@
 package com.dianping.trek.handler;
 
-import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.dianping.trek.decoder.DecodeResult;
+import com.dianping.trek.server.MessageChunk;
 import com.dianping.trek.spi.TrekContext;
 
 import io.netty.channel.ChannelHandlerContext;
@@ -32,13 +32,10 @@ public class ApplicationDistributionHandler extends ChannelInboundHandlerAdapter
         }
         DecodeResult result = (DecodeResult) msg;
         String appName = result.getLogName();
-        BlockingQueue<String> appMessageQueue;
+        BlockingQueue<MessageChunk> appMessageQueue;
         if ((appMessageQueue = trekCtx.getApplicationMessageQueue(appName)) != null) {
-            List<String> logList = result.getLogList();
-            for (String log : logList) {
-                appMessageQueue.offer(log);
-            }
-            trekCtx.updateReceivedMessageStat(appName, logList.size());
+            appMessageQueue.offer(new MessageChunk(ctx, result));
+            trekCtx.updateReceivedMessageStat(appName, result.getLogList().size());
         } else {
             LOG.error("Can not find application by " + appName);
             exceptionCount++;
