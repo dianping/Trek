@@ -32,7 +32,10 @@ public class Main {
         }
     }
     public static void main(String[] args) throws Exception {
-        String filePath = args[0].trim();
+        String host = args[0].trim();
+        int port = Integer.parseInt(args[1].trim());
+        String filePath = args[2].trim();
+        int frequency = Integer.parseInt(args[3].trim());
         LogMsgCoder coder=new LogMsgCoderImpl();
         byte[] inputData = getDataFromFile(filePath);
         
@@ -47,16 +50,15 @@ public class Main {
             System.out.println("invalid data!");
             System.out.println("\n<----------------------------->\n");
         }
-        
-        Socket socket = new Socket("localhost", 8080);
+        Socket socket = new Socket(host, port);
         OutputStream outputStream = socket.getOutputStream();
-        for (int i = 0; i < 1000000; i++) {
-            for (int j = 0; j < 1000; j++) {
+        while(true) {
+            for (int j = 0; j < frequency; j++) {
                 outputStream.write(inputData);
             }
             outputStream.flush();
             Thread.sleep(1);
         }
-        socket.close();
+//        socket.close();
     }
 }

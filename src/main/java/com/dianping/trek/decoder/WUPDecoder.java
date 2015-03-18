@@ -39,24 +39,28 @@ public class WUPDecoder extends LengthFieldBasedFrameDecoder {
             return null;
         }
         ByteBuf message =  frame.slice();
-        if (SUBMIT_MAGIC_NUMBER == message.readInt()) {
-            int type = message.readInt();
-            int lengthFieldValue = message.readInt();
-            //TODO handle control message
-            return null;
-        } else {
-            int charset = message.readInt();
-            int lengthFieldValue = message.readInt();
-            int inputSize = SIZE_BEFORE_LENGTH_FIELD + lengthFieldValue;
-            byte[] inputData = new byte[inputSize];
-            message.getBytes(0, inputData);
-            if(coder.isValidMsg(inputData)){
-                DecodeResult result=coder.decode(inputData);
-                return result;
-            } else {
-                LOG.error("invlid message");
+        try {
+            if (SUBMIT_MAGIC_NUMBER == message.readInt()) {
+                int type = message.readInt();
+                int lengthFieldValue = message.readInt();
+                //TODO handle control message
                 return null;
+            } else {
+                int charset = message.readInt();
+                int lengthFieldValue = message.readInt();
+                int inputSize = SIZE_BEFORE_LENGTH_FIELD + lengthFieldValue;
+                byte[] inputData = new byte[inputSize];
+                message.getBytes(0, inputData);
+                if(coder.isValidMsg(inputData)){
+                    DecodeResult result=coder.decode(inputData);
+                    return result;
+                } else {
+                    LOG.error("invlid message");
+                    return null;
+                }
             }
+        }finally {
+            frame.release();
         }
     }
 }
