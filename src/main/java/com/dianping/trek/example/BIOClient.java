@@ -1,4 +1,4 @@
-package com.dianping.trek;
+package com.dianping.trek.example;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -6,12 +6,15 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.Properties;
 
 import com.dianping.trek.decoder.DecodeResult;
 import com.dianping.trek.decoder.LogMsgCoder;
 import com.dianping.trek.decoder.LogMsgCoderImpl;
+import com.dianping.trek.server.TrekContext;
+import com.dianping.trek.server.TrekServer;
 
-public class Main {
+public class BIOClient {
 
     private static byte[] getDataFromFile(String filePath) throws IOException{
         FileInputStream fin=null;
@@ -38,7 +41,13 @@ public class Main {
         int frequency = Integer.parseInt(args[3].trim());
         LogMsgCoder coder=new LogMsgCoderImpl();
         byte[] inputData = getDataFromFile(filePath);
-        
+        Properties prop = new Properties();
+        prop.load(TrekServer.class.getClassLoader().getResourceAsStream("config.properties"));
+        String encryKey = prop.getProperty("trek.encryKey");
+        if (encryKey == null) {
+            System.exit(1);
+        }
+        TrekContext.getInstance().setEncryKey(encryKey);
         if(coder.isValidMsg(inputData)){
             DecodeResult result=coder.decode(inputData);
             System.out.println("\n<----------------------------->\n");
@@ -57,7 +66,7 @@ public class Main {
                 outputStream.write(inputData);
             }
             outputStream.flush();
-            Thread.sleep(1);
+            Thread.sleep(10);
         }
 //        socket.close();
     }

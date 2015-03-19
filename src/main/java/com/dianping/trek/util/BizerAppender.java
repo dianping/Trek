@@ -6,7 +6,7 @@ import java.io.IOException;
 import org.apache.log4j.DailyRollingFileAppender;
 import org.apache.log4j.PatternLayout;
 
-import com.dianping.trek.spi.TrekContext;
+import com.dianping.trek.server.TrekContext;
 
 public class BizerAppender extends DailyRollingFileAppender {
     private String basePath;
@@ -19,7 +19,7 @@ public class BizerAppender extends DailyRollingFileAppender {
             super.setFile(basePath + File.separator + appName, true, false, 1024);
         } catch (IOException e) {
             try {
-                super.setFile(TrekContext.getDefaultLogBaseDir() + File.separator + appName, true, false, 1024);
+                super.setFile(TrekContext.getInstance().getDefaultLogBaseDir() + File.separator + appName, true, false, 1024);
             } catch (IOException e1) {
                 e1.printStackTrace();
             }

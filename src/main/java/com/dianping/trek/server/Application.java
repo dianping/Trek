@@ -1,10 +1,10 @@
-package com.dianping.trek.spi;
+package com.dianping.trek.server;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.dianping.trek.server.MessageChunk;
+import com.dianping.trek.processor.AbstractProcessor;
 import com.dianping.trek.util.BizerAppender;
 import com.dianping.trek.util.Constants;
 import com.dianping.trek.util.ReflectionUtils;
@@ -17,10 +17,10 @@ public class Application {
     private final BizerAppender appender;
     private boolean immediateFlush;
     private int numWorker;
-    private BasicProcessor processor;
+    private AbstractProcessor processor;
     
     public Application(String appName, String appKey,
-            Class<? extends BasicProcessor> processorClass, String basePath,
+            Class<? extends AbstractProcessor> processorClass, String basePath,
             int numWorker, boolean immediateFlush) {
         this.appName = appName;
         this.appKey = appKey;
@@ -52,7 +52,7 @@ public class Application {
         return appender;
     }
 
-    public BasicProcessor getProcessor() {
+    public AbstractProcessor getProcessor() {
         return processor;
     }
 

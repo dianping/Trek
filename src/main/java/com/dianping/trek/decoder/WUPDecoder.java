@@ -12,6 +12,7 @@ import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 public class WUPDecoder extends LengthFieldBasedFrameDecoder {
     private static final Log LOG = LogFactory.getLog(WUPDecoder.class);
     private static final int SUBMIT_MAGIC_NUMBER = 0xfeedcafe;
+    private static final int REQUEST_MAGIC_NUMBER=0xdeadbeef;
     private static final int SIZE_BEFORE_LENGTH_FIELD = 8;//magic(4bytes)+charsetFlag(4bytes)
     private LogMsgCoder coder;
     
@@ -39,13 +40,14 @@ public class WUPDecoder extends LengthFieldBasedFrameDecoder {
             return null;
         }
         ByteBuf message =  frame.slice();
+        int magic = message.readInt();
         try {
-            if (SUBMIT_MAGIC_NUMBER == message.readInt()) {
+            if (SUBMIT_MAGIC_NUMBER == magic) {
                 int type = message.readInt();
                 int lengthFieldValue = message.readInt();
                 //TODO handle control message
                 return null;
-            } else {
+            } else if (REQUEST_MAGIC_NUMBER == magic){
                 int charset = message.readInt();
                 int lengthFieldValue = message.readInt();
                 int inputSize = SIZE_BEFORE_LENGTH_FIELD + lengthFieldValue;
@@ -58,6 +60,9 @@ public class WUPDecoder extends LengthFieldBasedFrameDecoder {
                     LOG.error("invlid message");
                     return null;
                 }
+            } else {
+                LOG.warn("invalid message!");
+                return null;
             }
         }finally {
             frame.release();

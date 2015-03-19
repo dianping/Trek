@@ -1,8 +1,8 @@
 package com.dianping.trek;
 
-import com.dianping.trek.spi.BasicProcessor;
+import com.dianping.trek.processor.AbstractProcessor;
 
-public class MyProcessor extends BasicProcessor {
+public class TestProcessor extends AbstractProcessor {
 
     @Override
     public String processOneLine(String rawLine) {

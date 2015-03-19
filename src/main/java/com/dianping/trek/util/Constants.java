@@ -14,4 +14,5 @@ public class Constants {
     
     public static final String IMMEDIATE_FLUSH = "flush";
     
+    public static final String ENCRYKEY_KEY = "encryKey";
 }

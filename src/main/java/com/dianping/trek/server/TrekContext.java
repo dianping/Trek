@@ -1,4 +1,4 @@
-package com.dianping.trek.spi;
+package com.dianping.trek.server;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -9,22 +9,27 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.dianping.trek.server.MessageChunk;
+import com.dianping.trek.processor.AbstractProcessor;
 import com.dianping.trek.util.Constants;
 
-public enum TrekContext {
-    INSTANCE;
-    
+public class TrekContext {
     private static Log LOG = LogFactory.getLog(TrekContext.class);
     private Map<String, Application> apps;
-    private static String defaultLogBaseDir;
+    private String defaultLogBaseDir;
+    private String encryKey;
+    
+    private static TrekContext instance = new TrekContext();
+    
+    public static TrekContext getInstance() {
+        return instance;
+    }
     
     private TrekContext() {
         this.apps = new ConcurrentHashMap<String, Application>();
     }
     
     public boolean addApplication(String appName, String appKey,
-            Class<? extends BasicProcessor> processorClass, String outputDir,
+            Class<? extends AbstractProcessor> processorClass, String outputDir,
             int numWorker, boolean immediateFlush) {
         if (apps.containsKey(appName)) {
             LOG.warn("The application name '" + appName + "' has already exist!");
@@ -37,15 +42,15 @@ public enum TrekContext {
     }
     
     public boolean addApplication(String appName, String appKey) {
-        return addApplication(appName, appKey, BasicProcessor.class, defaultLogBaseDir, Constants.DEFAULT_WORKER_NUMBER, false);
+        return addApplication(appName, appKey, AbstractProcessor.class, defaultLogBaseDir, Constants.DEFAULT_WORKER_NUMBER, false);
     }
 
-    public boolean addApplication(String appName, String appKey, Class<? extends BasicProcessor> processorClass, int numWorker, boolean immediateFlush) {
+    public boolean addApplication(String appName, String appKey, Class<? extends AbstractProcessor> processorClass, int numWorker, boolean immediateFlush) {
         return addApplication(appName, appKey, processorClass, defaultLogBaseDir, numWorker, immediateFlush);
     }
     
     public boolean addApplication(String appName, String appKey, String outputDir) {
-        return addApplication(appName, appKey, BasicProcessor.class, outputDir, Constants.DEFAULT_WORKER_NUMBER, false);
+        return addApplication(appName, appKey, AbstractProcessor.class, outputDir, Constants.DEFAULT_WORKER_NUMBER, false);
     }
     
     public Set<String> getAllApplicationNames() {
@@ -83,11 +88,19 @@ public enum TrekContext {
         }
     }
     
-    public static String getDefaultLogBaseDir() {
+    public String getDefaultLogBaseDir() {
         return defaultLogBaseDir;
     }
     
-    public static void SetDefaultLogBaseDir(String defaultBasePath) {
-        defaultLogBaseDir = defaultBasePath;
+    public void setDefaultLogBaseDir(String defaultBasePath) {
+        this.defaultLogBaseDir = defaultBasePath;
+    }
+
+    public String getEncryKey() {
+        return encryKey;
+    }
+
+    public void setEncryKey(String key) {
+        this.encryKey = key;
     }
 }

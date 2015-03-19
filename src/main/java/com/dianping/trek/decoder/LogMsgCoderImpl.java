@@ -6,6 +6,13 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.DESKeySpec;
+import javax.crypto.spec.IvParameterSpec;
+
+import com.dianping.trek.server.TrekContext;
 import com.dianping.trek.util.CompressUtil;
 import com.qq.jce.wup.UniPacket;
 
@@ -72,17 +79,34 @@ public class LogMsgCoderImpl implements  LogMsgCoder {
 
 	@SuppressWarnings("unused")
     @Override
-	public DecodeResult decode(byte[] data) throws Exception {
 		
+    public DecodeResult decode(byte[] data) throws Exception {
 		ByteBuffer buffer=ByteBuffer.wrap(data);
 		int magicNumber=buffer.getInt();
 		int charsetFlag=buffer.getInt();
-				
-		byte[] contentData=new byte[buffer.remaining()];
-		buffer.get(contentData);
-	
+		
+		//跳过未解密数据的长度域
+		buffer.getInt();
+		//对加密数据进行解密
+		byte[] encryptContent=new byte[buffer.remaining()];
+		buffer.get(encryptContent);
+		byte[] decryptedContent = decrypt(encryptContent);
+		
+		//计算已解密数据的长度，根据协议要求，包含长度域自身的4字节
+		int contentlength = 4 + decryptedContent.length;
+		byte[] contentlengthDate = ByteBuffer.allocate(4).putInt(contentlength).array();
+		
+		//将长度域和已解密数据填充到新的字符数组
+		byte[] entireData = new byte[contentlength];
+		for (int i = 0; i < contentlengthDate.length; i++) {
+            entireData[i] = contentlengthDate[i];
+        }
+		for (int i = 0; i < decryptedContent.length; i++) {
+		    entireData[contentlengthDate.length + i] = decryptedContent[i];
+        }
+		
 		UniPacket packet=new UniPacket(); //默认用版本2
-		packet.decode(contentData);
+		packet.decode(entireData);
 		
 		//LogMsgStruct logMsgStruct=packet.get(FIELD_LOG);
 		LogMsgStruct logMsgStruct=packet.get(FIELD_LOG, new LogMsgStruct(), null);
@@ -127,4 +151,16 @@ public class LogMsgCoderImpl implements  LogMsgCoder {
 		return new DecodeResult(logName, logList, needBackMsg, returnData);
 	}
 
+	private byte[] decrypt(byte[] src) throws Exception{
+        if (src == null)
+            return null;
+        byte[] data = null;
+        Cipher cipher = Cipher.getInstance("DES/CBC/PKCS5Padding");
+        DESKeySpec dks = new DESKeySpec(TrekContext.getInstance().getEncryKey().getBytes("UTF-8"));
+        SecretKey key = SecretKeyFactory.getInstance("DES").generateSecret(dks);
+        IvParameterSpec iv = new IvParameterSpec(TrekContext.getInstance().getEncryKey().getBytes("UTF-8"));
+        cipher.init(Cipher.DECRYPT_MODE, key, iv);
+        data = cipher.doFinal(src);
+        return data;
+    }
 }

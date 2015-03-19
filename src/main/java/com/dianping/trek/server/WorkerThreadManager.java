@@ -8,9 +8,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.dianping.trek.spi.Application;
-import com.dianping.trek.spi.BasicProcessor;
-import com.dianping.trek.spi.TrekContext;
+import com.dianping.trek.processor.AbstractProcessor;
 
 public class WorkerThreadManager {
     private static Log LOG = LogFactory.getLog(WorkerThreadManager.class);
@@ -20,7 +18,7 @@ public class WorkerThreadManager {
     private ConcurrentHashMap<String, Set<Worker>> runningWorkers;
     
     public WorkerThreadManager() {
-        this.trekContext = TrekContext.INSTANCE;
+        this.trekContext = TrekContext.getInstance();
         this.runningWorkers = new ConcurrentHashMap<String, Set<Worker>>();
     }
     
@@ -32,7 +30,7 @@ public class WorkerThreadManager {
             }
             Application app = trekContext.getApplication(appName);
             BlockingQueue<MessageChunk> queue = app.getMessageQueue();
-            BasicProcessor processor = app.getProcessor();
+            AbstractProcessor processor = app.getProcessor();
             processor.setApp(app);
             int numWorker = app.getNumWorker();
             Set<Worker> workers = new CopyOnWriteArraySet<Worker>();
@@ -66,8 +64,8 @@ public class WorkerThreadManager {
         private volatile boolean running;
         private String  appName;
         private BlockingQueue<MessageChunk> queue;
-        private BasicProcessor processor;
-        public Worker(String appName, BlockingQueue<MessageChunk> queue, BasicProcessor processor) {
+        private AbstractProcessor processor;
+        public Worker(String appName, BlockingQueue<MessageChunk> queue, AbstractProcessor processor) {
             this.running = true;
             this.appName = appName;
             this.queue = queue;
@@ -92,7 +90,7 @@ public class WorkerThreadManager {
             }
         }
 
-        private void processAndAck(MessageChunk unprocessedChunk, BasicProcessor processor) {
+        private void processAndAck(MessageChunk unprocessedChunk, AbstractProcessor processor) {
             MessageChunk processedChunk = processor.processOneChunk(unprocessedChunk);
             processor.logToDisk(processedChunk);
             processedChunk.clearUnprocessedMessage();

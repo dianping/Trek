@@ -7,7 +7,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.dianping.trek.decoder.DecodeResult;
 import com.dianping.trek.server.MessageChunk;
-import com.dianping.trek.spi.TrekContext;
+import com.dianping.trek.server.TrekContext;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -21,7 +21,7 @@ public class ApplicationDistributionHandler extends ChannelInboundHandlerAdapter
     
     
     public ApplicationDistributionHandler() {
-        this.trekCtx = TrekContext.INSTANCE;
+        this.trekCtx = TrekContext.getInstance();
     }
     
     @Override
