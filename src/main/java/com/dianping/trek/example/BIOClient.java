@@ -66,7 +66,7 @@ public class BIOClient {
                 outputStream.write(inputData);
             }
             outputStream.flush();
-            Thread.sleep(10);
+            Thread.sleep(1000);
         }
 //        socket.close();
     }
