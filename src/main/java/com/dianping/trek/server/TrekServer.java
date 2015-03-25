@@ -45,6 +45,7 @@ public class TrekServer {
              .channel(NioServerSocketChannel.class)
              .childHandler(new FilterChannelChain())
              .option(ChannelOption.SO_BACKLOG, 128)
+             .option(ChannelOption.SO_KEEPALIVE, true)
              .childOption(ChannelOption.SO_KEEPALIVE, false);
 
             // Bind and start to accept incoming connections.
