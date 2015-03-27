@@ -61,6 +61,41 @@ public class DecodeResult {
 				+ ", needBackMsg=" + needBackMsg + ", returnData="
 				+ Arrays.toString(returnData) + "]";
 	}
-	
 
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((logList == null) ? 0 : logList.hashCode());
+        result = prime * result + ((logName == null) ? 0 : logName.hashCode());
+        result = prime * result + (needBackMsg ? 1231 : 1237);
+        result = prime * result + Arrays.hashCode(returnData);
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        DecodeResult other = (DecodeResult) obj;
+        if (logList == null) {
+            if (other.logList != null)
+                return false;
+        } else if (!logList.equals(other.logList))
+            return false;
+        if (logName == null) {
+            if (other.logName != null)
+                return false;
+        } else if (!logName.equals(other.logName))
+            return false;
+        if (needBackMsg != other.needBackMsg)
+            return false;
+        if (!Arrays.equals(returnData, other.returnData))
+            return false;
+        return true;
+    }
 }

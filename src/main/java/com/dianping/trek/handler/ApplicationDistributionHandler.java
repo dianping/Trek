@@ -40,11 +40,6 @@ public class ApplicationDistributionHandler extends ChannelInboundHandlerAdapter
             LOG.error("Can not find application by " + appName);
             exceptionCount++;
         }
-        
-        if (result.isNeedBackMsg()) {
-            ctx.writeAndFlush(result.getReturnData());
-            System.out.println("write back!");
-        }
     }
     
     @Override
