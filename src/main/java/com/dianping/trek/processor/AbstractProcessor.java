@@ -72,7 +72,7 @@ public abstract class AbstractProcessor {
             );
             }
         }
-        LOG.debug("DIK: " + processedChunk.getResult().hashCode() + " " + System.currentTimeMillis());
+        LOG.trace("DIK: " + processedChunk.getResult().hashCode() + " " + System.currentTimeMillis());
     }
     
     public String trimCRNL(String line) {

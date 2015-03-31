@@ -10,6 +10,7 @@ import org.json.JSONObject;
 
 import com.dianping.trek.decoder.WUPDecoder;
 import com.dianping.trek.handler.ApplicationDistributionHandler;
+import com.dianping.trek.metric.MetricReporter;
 import com.dianping.trek.processor.AbstractProcessor;
 import com.dianping.trek.util.CommonUtil;
 import com.dianping.trek.util.Constants;
@@ -28,6 +29,7 @@ public class TrekServer {
     private static Log LOG = LogFactory.getLog(TrekServer.class);
     private int port;
     private WorkerThreadManager workerManger;
+    private MetricReporter metricReporter;
 
     public TrekServer(int port) {
         this.port = port;
@@ -36,6 +38,8 @@ public class TrekServer {
     public void run() throws Exception {
         workerManger = new WorkerThreadManager();
         workerManger.startAll();
+        metricReporter = new MetricReporter();
+        metricReporter.start();
         
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         EventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -116,6 +120,7 @@ public class TrekServer {
                 }
             }
         }
+        LOG.info("Start trek server on port " + port);
         new TrekServer(port).run();
     }
 }

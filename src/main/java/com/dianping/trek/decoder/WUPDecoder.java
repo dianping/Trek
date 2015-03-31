@@ -5,9 +5,13 @@ import java.net.InetSocketAddress;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.dianping.cat.Cat;
+import com.dianping.trek.exception.InvalidMessageException;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
+import io.netty.handler.codec.TooLongFrameException;
 
 public class WUPDecoder extends LengthFieldBasedFrameDecoder {
     private static final Log LOG = LogFactory.getLog(WUPDecoder.class);
@@ -54,10 +58,10 @@ public class WUPDecoder extends LengthFieldBasedFrameDecoder {
                 byte[] inputData = new byte[inputSize];
                 message.getBytes(0, inputData);
                 if(coder.isValidMsg(inputData)){
-                    DecodeResult result=coder.decode(inputData);
+                    DecodeResult result = coder.decode(inputData);
                     return result;
                 } else {
-                    LOG.error("invlid message");
+                    LOG.error("invalid message", new InvalidMessageException());
                     return null;
                 }
             } else {
@@ -66,6 +70,14 @@ public class WUPDecoder extends LengthFieldBasedFrameDecoder {
             }
         }finally {
             frame.release();
+        }
+    }
+    
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
+            throws Exception {
+        if (!(cause instanceof TooLongFrameException)) {
+            LOG.error("decode exception", cause);
         }
     }
 }

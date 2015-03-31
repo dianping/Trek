@@ -152,7 +152,7 @@ public class LogMsgCoderImpl implements  LogMsgCoder {
 
 		String logName=logMsgStruct.getName();
 		DecodeResult result =  new DecodeResult(logName, logList, needBackMsg, returnData);
-		LOG.debug("REC: " + result.hashCode() + " " + System.currentTimeMillis());
+		LOG.trace("REC: " + result.hashCode() + " " + System.currentTimeMillis());
 		return result;
 	}
 

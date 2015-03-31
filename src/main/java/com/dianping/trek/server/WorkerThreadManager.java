@@ -99,7 +99,7 @@ public class WorkerThreadManager {
                 byte[] ack = Arrays.copyOf(src, src.length);
                 processedChunk.getCtx().writeAndFlush(ack);
             }
-            LOG.debug("ACK: " + unprocessedChunk.getResult().hashCode() + " " + System.currentTimeMillis());
+            LOG.trace("ACK: " + unprocessedChunk.getResult().hashCode() + " " + System.currentTimeMillis());
         }
         
         public void stopGracefully() {
