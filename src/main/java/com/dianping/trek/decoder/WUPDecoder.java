@@ -5,7 +5,6 @@ import java.net.InetSocketAddress;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.dianping.cat.Cat;
 import com.dianping.trek.exception.InvalidMessageException;
 
 import io.netty.buffer.ByteBuf;
@@ -32,7 +31,7 @@ public class WUPDecoder extends LengthFieldBasedFrameDecoder {
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         InetSocketAddress address = (InetSocketAddress) ctx.channel().remoteAddress();
         String ip = address.getAddress().getHostAddress();
-        LOG.info("Connected from " + ip);
+        LOG.trace("Connected from " + ip);
         ctx.fireChannelActive();
     }
     
