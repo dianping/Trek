@@ -1,5 +1,6 @@
 package com.dianping.trek.server;
 
+import java.io.IOException;
 import java.util.Properties;
 
 import org.apache.commons.logging.Log;
@@ -25,17 +26,14 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.bytes.ByteArrayEncoder;
 
-public class TrekServer {
+public class TrekServer extends Thread {
     private static Log LOG = LogFactory.getLog(TrekServer.class);
     private int port;
     private WorkerThreadManager workerManger;
     private MetricReporter metricReporter;
 
-    public TrekServer(int port) {
-        this.port = port;
-    }
-    
-    public void run() throws Exception {
+    public void run() {
+        LOG.info("Start trek server on port " + port);
         workerManger = new WorkerThreadManager();
         workerManger.startAll();
         metricReporter = new MetricReporter();
@@ -59,6 +57,8 @@ public class TrekServer {
             // In this example, this does not happen, but you can do that to gracefully
             // shut down your server.
             f.channel().closeFuture().sync();
+        } catch (InterruptedException e) {
+            LOG.error("netty loop interrupted", e);;
         } finally {
             workerGroup.shutdownGracefully();
             bossGroup.shutdownGracefully();
@@ -75,15 +75,10 @@ public class TrekServer {
         }
     }
 
-    public static void main(String[] args) throws Exception {
+    public void initParam() throws IOException, ClassNotFoundException {
         Properties prop = new Properties();
         prop.load(TrekServer.class.getClassLoader().getResourceAsStream("config.properties"));
-        int port;
-        if (args.length > 0) {
-            port = Integer.parseInt(args[0]);
-        } else {
-            port = Integer.parseInt(prop.getProperty("trek.port", "8080"));
-        }
+        this.port = Integer.parseInt(prop.getProperty("trek.port", "8090"));
         String basePath = prop.getProperty("trek.basePath", "/tmp");
         TrekContext.getInstance().setDefaultLogBaseDir(basePath);
         String encryKey = prop.getProperty("trek.encryKey");
@@ -108,19 +103,18 @@ public class TrekServer {
                     continue;
                 }
                 boolean immediateFlush = CommonUtil.getBoolean(appObject, Constants.IMMEDIATE_FLUSH, false);
-                try {
-                    String processorClassName = CommonUtil.getString(appObject, Constants.PROCESS_CLASS_KEY, Constants.DEFAULT_PROCESSOR_CLASS);
-                    @SuppressWarnings("unchecked")
-                    Class<? extends AbstractProcessor> processorClass = (Class<? extends AbstractProcessor>) Class.forName(processorClassName);
-                    int numWorker = CommonUtil.getInteger(appObject, Constants.NUM_WORKER_KEY, Constants.DEFAULT_WORKER_NUMBER);
-                    TrekContext.getInstance().addApplication(name, key, processorClass, numWorker, immediateFlush);
-                } catch (Exception e) {
-                    LOG.error("Stop trek server cause fail to load processor", e);
-                    System.exit(1);
-                }
+                String processorClassName = CommonUtil.getString(appObject, Constants.PROCESS_CLASS_KEY, Constants.DEFAULT_PROCESSOR_CLASS);
+                @SuppressWarnings("unchecked")
+                Class<? extends AbstractProcessor> processorClass = (Class<? extends AbstractProcessor>) Class.forName(processorClassName);
+                int numWorker = CommonUtil.getInteger(appObject, Constants.NUM_WORKER_KEY, Constants.DEFAULT_WORKER_NUMBER);
+                TrekContext.getInstance().addApplication(name, key, processorClass, numWorker, immediateFlush);
             }
         }
-        LOG.info("Start trek server on port " + port);
-        new TrekServer(port).run();
+    }
+    
+    public static void main(String[] args) throws Exception {
+        TrekServer server = new TrekServer();
+        server.initParam();
+        server.run();
     }
 }
