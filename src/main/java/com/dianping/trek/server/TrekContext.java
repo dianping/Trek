@@ -10,11 +10,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.dianping.trek.processor.AbstractProcessor;
-import com.dianping.trek.util.Constants;
 
 public class TrekContext {
     private static Log LOG = LogFactory.getLog(TrekContext.class);
-    private Map<String, Application> apps;
+    private Map<String, String> logname2appkeyMap; //logname -> appkey  n:1
+    private Map<String, Application> apps; //appkey -> application  1:1
     private String defaultLogBaseDir;
     private String encryKey;
     
@@ -26,43 +26,32 @@ public class TrekContext {
     
     private TrekContext() {
         this.apps = new ConcurrentHashMap<String, Application>();
+        this.logname2appkeyMap = new ConcurrentHashMap<String, String>();
     }
     
-    public boolean addApplication(String appName, String appKey,
+    public boolean addApplication(String alias, String appKey,
             Class<? extends AbstractProcessor> processorClass, String outputDir,
-            int numWorker, boolean immediateFlush) {
-        if (apps.containsKey(appName)) {
-            LOG.warn("The application name '" + appName + "' has already exist!");
+            int numWorker, boolean immediateFlush, int flushBufferSize) {
+        if (apps.containsKey(appKey)) {
+            LOG.warn("The application alias '" + alias + "' with key '" + appKey + "' has already exist!");
             return false;
         } else {
-            Application application = new Application(appName, appKey, processorClass, outputDir, numWorker, immediateFlush);
-            apps.put(appName, application); 
+            Application application = new Application(alias, appKey, processorClass, outputDir, numWorker, immediateFlush, flushBufferSize);
+            apps.put(appKey, application); 
             return true;
         }
     }
     
-    public boolean addApplication(String appName, String appKey) {
-        return addApplication(appName, appKey, AbstractProcessor.class, defaultLogBaseDir, Constants.DEFAULT_WORKER_NUMBER, false);
-    }
-
-    public boolean addApplication(String appName, String appKey, Class<? extends AbstractProcessor> processorClass, int numWorker, boolean immediateFlush) {
-        return addApplication(appName, appKey, processorClass, defaultLogBaseDir, numWorker, immediateFlush);
-    }
-    
-    public boolean addApplication(String appName, String appKey, String outputDir) {
-        return addApplication(appName, appKey, AbstractProcessor.class, outputDir, Constants.DEFAULT_WORKER_NUMBER, false);
-    }
-    
-    public Set<String> getAllApplicationNames() {
+    public Set<String> getAllAppkeys() {
         return new HashSet<String>(apps.keySet());
     }
     
-    public Application getApplication(String appName) {
-        return apps.get(appName);
+    public Application getApplication(String appkey) {
+        return apps.get(appkey);
     }
     
-    public BlockingQueue<MessageChunk> getApplicationMessageQueue(String appName) {
-        Application application = apps.get(appName);
+    public BlockingQueue<MessageChunk> getApplicationMessageQueue(String appkey) {
+        Application application = apps.get(appkey);
         if (application == null) {
             return null;
         } else {
@@ -70,8 +59,8 @@ public class TrekContext {
         }
     }
 
-    public long updateReceivedMessageStat(String appName, long increase) {
-        Application application = apps.get(appName);
+    public long updateReceivedMessageStat(String appkey, long increase) {
+        Application application = apps.get(appkey);
         if (application == null) {
             return 0L;
         } else {
@@ -79,8 +68,8 @@ public class TrekContext {
         }
     }
     
-    public long getReceivedMessageStat(String appName) {
-        Application application = apps.get(appName);
+    public long getReceivedMessageStat(String appkey) {
+        Application application = apps.get(appkey);
         if (application == null) {
             return 0L;
         } else {
@@ -102,5 +91,13 @@ public class TrekContext {
 
     public void setEncryKey(String key) {
         this.encryKey = key;
+    }
+
+    public String getAppkeyByLogname(String logname) {
+        return logname2appkeyMap.get(logname);
+    }
+    
+    public void setLognameMapping(String logname, String appkey) {
+        logname2appkeyMap.put(logname, appkey);
     }
 }

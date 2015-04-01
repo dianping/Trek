@@ -22,12 +22,12 @@ public class MetricReporter extends Thread {
     @Override
     public void run() {
         while (running) {
-            for (String appName : context.getAllApplicationNames()) {
-                long currentCount = context.getReceivedMessageStat(appName);
-                Long lastCount = lastReportStat.get(appName);
+            for (String appkey : context.getAllAppkeys()) {
+                long currentCount = context.getReceivedMessageStat(appkey);
+                Long lastCount = lastReportStat.get(appkey);
                 long delta = currentCount - (lastCount == null ? 0L : lastCount);
-                Cat.logMetricForSum(Constants.CAT_DOMAIN_PREFIX + appName, delta);
-                lastReportStat.put(appName, currentCount);
+                Cat.logMetricForSum(Constants.CAT_DOMAIN_PREFIX + TrekContext.getInstance().getApplication(appkey).getAlias(), delta);
+                lastReportStat.put(appkey, currentCount);
             }
             try {
                 Thread.sleep(METRIC_REPORT_DURATION);
