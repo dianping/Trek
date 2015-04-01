@@ -10,16 +10,16 @@ import com.dianping.trek.server.TrekContext;
 
 public class BizerAppender extends DailyRollingFileAppender {
     private String basePath;
-    private String appName;
+    private String alias;
     
-    public BizerAppender(String basePath, String appName, boolean immediateFlush) {
+    public BizerAppender(String basePath, String alias, boolean immediateFlush, int flushBufferSize) {
         this.basePath = basePath;
-        this.appName = appName;
+        this.alias = alias;
         try {
-            super.setFile(basePath + File.separator + appName, true, false, 1024);
+            super.setFile(basePath + File.separator + alias, true, false, flushBufferSize);
         } catch (IOException e) {
             try {
-                super.setFile(TrekContext.getInstance().getDefaultLogBaseDir() + File.separator + appName, true, false, 1024);
+                super.setFile(TrekContext.getInstance().getDefaultLogBaseDir() + File.separator + alias, true, false, 1024);
             } catch (IOException e1) {
                 e1.printStackTrace();
             }
@@ -32,7 +32,7 @@ public class BizerAppender extends DailyRollingFileAppender {
 
     @Override
     public String toString() {
-        return "BizerAppender [basePath=" + basePath + ", appName=" + appName
+        return "BizerAppender [basePath=" + basePath + ", alias=" + alias
                 + "]";
     }
 }

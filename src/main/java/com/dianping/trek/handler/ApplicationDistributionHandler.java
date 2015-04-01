@@ -7,6 +7,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.dianping.trek.decoder.DecodeResult;
 import com.dianping.trek.exception.InvalidApplicationException;
+import com.dianping.trek.server.Application;
 import com.dianping.trek.server.MessageChunk;
 import com.dianping.trek.server.TrekContext;
 
@@ -31,13 +32,19 @@ public class ApplicationDistributionHandler extends ChannelInboundHandlerAdapter
             return;
         }
         DecodeResult result = (DecodeResult) msg;
-        String appName = result.getLogName();
+        String logname = result.getLogName();
+        String appkey = trekCtx.getAppkeyByLogname(logname);
+        if (appkey == null) {
+            LOG.error("Can not find appkey by " + logname);
+            exceptionCount++;
+            return;
+        }
         BlockingQueue<MessageChunk> appMessageQueue;
-        if ((appMessageQueue = trekCtx.getApplicationMessageQueue(appName)) != null) {
+        if ((appMessageQueue = trekCtx.getApplicationMessageQueue(appkey)) != null) {
             appMessageQueue.offer(new MessageChunk(ctx, result));
-            trekCtx.updateReceivedMessageStat(appName, result.getLogList().size());
+            trekCtx.updateReceivedMessageStat(appkey, result.getLogList().size());
         } else {
-            LOG.error("Can not find application by " + appName);
+            LOG.error("Can not find application by " + appkey);
             exceptionCount++;
         }
     }

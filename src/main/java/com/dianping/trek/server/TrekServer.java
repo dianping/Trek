@@ -58,7 +58,7 @@ public class TrekServer extends Thread {
             // shut down your server.
             f.channel().closeFuture().sync();
         } catch (InterruptedException e) {
-            LOG.error("netty loop interrupted", e);;
+            LOG.error("netty loop interrupted", e);
         } finally {
             workerGroup.shutdownGracefully();
             bossGroup.shutdownGracefully();
@@ -79,35 +79,40 @@ public class TrekServer extends Thread {
         Properties prop = new Properties();
         prop.load(TrekServer.class.getClassLoader().getResourceAsStream("config.properties"));
         this.port = Integer.parseInt(prop.getProperty("trek.port", "8090"));
+        
         String basePath = prop.getProperty("trek.basePath", "/tmp");
         TrekContext.getInstance().setDefaultLogBaseDir(basePath);
+        
         String encryKey = prop.getProperty("trek.encryKey");
         if (encryKey == null) {
-            System.exit(1);
+            throw new IOException("Can not find encry key");
         }
         TrekContext.getInstance().setEncryKey(encryKey);
         
         String appJsonStr = prop.getProperty("trek.app.json");
-        
         if (appJsonStr != null) {
             JSONArray appArray = new JSONArray(appJsonStr);
             for (int i = 0; i < appArray.length(); i++) {
                 JSONObject appObject;
-                String name;
+                String alias;
+                String logname;
                 String key;
                 try {
                     appObject = appArray.getJSONObject(i);
-                    name = appObject.getString(Constants.APPNAME_KEY);
+                    alias = appObject.getString(Constants.ALIAS_KEY);
+                    logname = appObject.getString(Constants.LOGNAME_KEY);
                     key = appObject.getString(Constants.APPKEY_KEY);
                 } catch (JSONException e) {
                     continue;
                 }
+                TrekContext.getInstance().setLognameMapping(logname, key);
+                int numWorker = CommonUtil.getInteger(appObject, Constants.NUM_WORKER_KEY, Constants.DEFAULT_WORKER_NUMBER);
                 boolean immediateFlush = CommonUtil.getBoolean(appObject, Constants.IMMEDIATE_FLUSH, false);
+                int flushBufferSize = CommonUtil.getInteger(appObject, Constants.FLUSH_BUFFER_SIZE_KEY, Constants.DEFAULT_FLUSH_BUFFER_SIZE);
                 String processorClassName = CommonUtil.getString(appObject, Constants.PROCESS_CLASS_KEY, Constants.DEFAULT_PROCESSOR_CLASS);
                 @SuppressWarnings("unchecked")
                 Class<? extends AbstractProcessor> processorClass = (Class<? extends AbstractProcessor>) Class.forName(processorClassName);
-                int numWorker = CommonUtil.getInteger(appObject, Constants.NUM_WORKER_KEY, Constants.DEFAULT_WORKER_NUMBER);
-                TrekContext.getInstance().addApplication(name, key, processorClass, numWorker, immediateFlush);
+                TrekContext.getInstance().addApplication(alias, key, processorClass, basePath,  numWorker, immediateFlush, flushBufferSize);
             }
         }
     }

@@ -24,31 +24,31 @@ public class WorkerThreadManager {
     }
     
     public void startAll() {
-        Set<String> applications = trekContext.getAllApplicationNames();
-        for (String appName : applications) {
-            if (runningWorkers.containsKey(appName)) {
+        Set<String> appkeys = trekContext.getAllAppkeys();
+        for (String appkey : appkeys) {
+            if (runningWorkers.containsKey(appkey)) {
                 continue;
             }
-            Application app = trekContext.getApplication(appName);
+            Application app = trekContext.getApplication(appkey);
             BlockingQueue<MessageChunk> queue = app.getMessageQueue();
             AbstractProcessor processor = app.getProcessor();
             processor.setApp(app);
             int numWorker = app.getNumWorker();
             Set<Worker> workers = new CopyOnWriteArraySet<Worker>();
             for (int i = 0; i < numWorker; i++) {
-                Worker worker = new Worker(appName, queue, processor);
+                Worker worker = new Worker(app.getAlias(), queue, processor);
                 worker.setDaemon(true);
-                worker.setName(appName + "-" + i); 
+                worker.setName(app.getAlias() + "-" + i); 
                 worker.start();
                 workers.add(worker);
             }
-            runningWorkers.putIfAbsent(appName, workers);
+            runningWorkers.putIfAbsent(appkey, workers);
         }
     }
     
-    public void shutdown(String appName) {
+    public void shutdown(String appkey) {
         Set<Worker> workers = null;
-        if ((workers = runningWorkers.get(appName)) == null) {
+        if ((workers = runningWorkers.get(appkey)) == null) {
             return;
         } else {
             LOG.info("stopping work thread.");
@@ -57,18 +57,18 @@ public class WorkerThreadManager {
             }
             workers.clear();
         }
-        runningWorkers.remove(appName);
+        runningWorkers.remove(appkey);
     }
     
     class Worker extends Thread {
 
         private volatile boolean running;
-        private String  appName;
+        private String  alias;
         private BlockingQueue<MessageChunk> queue;
         private AbstractProcessor processor;
-        public Worker(String appName, BlockingQueue<MessageChunk> queue, AbstractProcessor processor) {
+        public Worker(String alias, BlockingQueue<MessageChunk> queue, AbstractProcessor processor) {
             this.running = true;
-            this.appName = appName;
+            this.alias = alias;
             this.queue = queue;
             this.processor = processor;
         }
@@ -80,7 +80,7 @@ public class WorkerThreadManager {
                     MessageChunk unprocessedChunk = queue.take();
                     processAndAck(unprocessedChunk, processor);
                 } catch (InterruptedException e) {
-                    LOG.error("Custom handler thread " + appName + " interrupted", e);
+                    LOG.error("Custom handler thread " + alias + " interrupted", e);
                     running = false;
                 } catch (Throwable t) {
                     LOG.error("Oops, worker got an exception!", t);

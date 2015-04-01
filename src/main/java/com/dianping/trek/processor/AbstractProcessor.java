@@ -26,7 +26,7 @@ public abstract class AbstractProcessor {
         if (this.app == null) {
             this.app = app;
             this.fqnOfCategoryClass = Logger.class.getName();
-            this.category = Logger.getLogger(app.getAppName());
+            this.category = Logger.getLogger(app.getAlias());
         }
     }
     
