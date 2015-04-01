@@ -1,5 +1,6 @@
 package com.dianping.trek.server;
 
+import java.util.Arrays;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -93,10 +94,12 @@ public class WorkerThreadManager {
         private void processAndAck(MessageChunk unprocessedChunk, AbstractProcessor processor) {
             MessageChunk processedChunk = processor.processOneChunk(unprocessedChunk);
             processor.logToDisk(processedChunk);
-            processedChunk.clearUnprocessedMessage();
             if (processedChunk.getResult().isNeedBackMsg()) {
-                processedChunk.getCtx().writeAndFlush(processedChunk.getResult().getReturnData());
+                byte[] src = processedChunk.getResult().getReturnData();
+                byte[] ack = Arrays.copyOf(src, src.length);
+                processedChunk.getCtx().writeAndFlush(ack);
             }
+            LOG.trace("ACK: " + unprocessedChunk.getResult().hashCode() + " " + System.currentTimeMillis());
         }
         
         public void stopGracefully() {

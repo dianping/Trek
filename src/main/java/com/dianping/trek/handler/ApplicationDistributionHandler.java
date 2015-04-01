@@ -6,6 +6,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.dianping.trek.decoder.DecodeResult;
+import com.dianping.trek.exception.InvalidApplicationException;
 import com.dianping.trek.server.MessageChunk;
 import com.dianping.trek.server.TrekContext;
 
@@ -18,7 +19,6 @@ public class ApplicationDistributionHandler extends ChannelInboundHandlerAdapter
     private long exceptionCount = 0L;
     
     private TrekContext trekCtx;
-    
     
     public ApplicationDistributionHandler() {
         this.trekCtx = TrekContext.getInstance();
@@ -40,20 +40,14 @@ public class ApplicationDistributionHandler extends ChannelInboundHandlerAdapter
             LOG.error("Can not find application by " + appName);
             exceptionCount++;
         }
-        
-        if (result.isNeedBackMsg()) {
-            ctx.writeAndFlush(result.getReturnData());
-            System.out.println("write back!");
-        }
     }
     
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
             throws Exception {
         if (exceptionCount++ > ALARM_THRESHOLD) {
-            LOG.fatal("Exceptions have occured more than " + ALARM_THRESHOLD + " times!");
+            LOG.error("Exceptions have occured more than " + ALARM_THRESHOLD + " times!", new InvalidApplicationException());
+            exceptionCount = 0L;
         }
-        ctx.fireExceptionCaught(cause);
     }
-    
 }

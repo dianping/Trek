@@ -49,5 +49,10 @@
 			<artifactId>wup</artifactId>
 			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
+		<dependency>
+			<groupId>com.dianping.cat</groupId>
+			<artifactId>cat-client</artifactId>
+			<version>1.2.2</version>
+		</dependency>
 	</dependencies>
 </project>

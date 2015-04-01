@@ -12,12 +12,15 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.DESKeySpec;
 import javax.crypto.spec.IvParameterSpec;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import com.dianping.trek.server.TrekContext;
 import com.dianping.trek.util.CompressUtil;
 import com.qq.jce.wup.UniPacket;
 
 public class LogMsgCoderImpl implements  LogMsgCoder {
-
+    private static Log LOG = LogFactory.getLog(LogMsgCoderImpl.class);
 	private static final int CHARSET_FLAG_GBK=2;
 	private static final int REQUEST_MAGIC_NUMBER=0xdeadbeef;
 	
@@ -148,7 +151,9 @@ public class LogMsgCoderImpl implements  LogMsgCoder {
 		}
 
 		String logName=logMsgStruct.getName();
-		return new DecodeResult(logName, logList, needBackMsg, returnData);
+		DecodeResult result =  new DecodeResult(logName, logList, needBackMsg, returnData);
+		LOG.trace("REC: " + result.hashCode() + " " + System.currentTimeMillis());
+		return result;
 	}
 
 	private byte[] decrypt(byte[] src) throws Exception{
