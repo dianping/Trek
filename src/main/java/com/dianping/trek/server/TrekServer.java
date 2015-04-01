@@ -58,7 +58,7 @@ public class TrekServer extends Thread {
             // shut down your server.
             f.channel().closeFuture().sync();
         } catch (InterruptedException e) {
-            LOG.error("netty loop interrupted", e);;
+            LOG.error("netty loop interrupted", e);
         } finally {
             workerGroup.shutdownGracefully();
             bossGroup.shutdownGracefully();
@@ -83,7 +83,7 @@ public class TrekServer extends Thread {
         TrekContext.getInstance().setDefaultLogBaseDir(basePath);
         String encryKey = prop.getProperty("trek.encryKey");
         if (encryKey == null) {
-            System.exit(1);
+            throw new IOException("Can not find encry key");
         }
         TrekContext.getInstance().setEncryKey(encryKey);
         
