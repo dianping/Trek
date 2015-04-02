@@ -2,12 +2,12 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.dianping</groupId>
-	<artifactId>trek</artifactId>
+	<artifactId>dw-trek-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>trek</name>
+	<name>dw-trek-service</name>
 	<packaging>war</packaging>
 	<build>
-		<finalName>trek-server</finalName>
+		<finalName>dw-trek-service</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -59,14 +59,19 @@
 			<version>1.1.1.3</version>
 		</dependency>
 		<dependency>
-			<groupId>com.qq</groupId>
+			<groupId>com.dianping.thirdparty</groupId>
 			<artifactId>wup</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
+			<version>1.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.dianping.cat</groupId>
 			<artifactId>cat-client</artifactId>
-			<version>1.2.2</version>
+			<version>1.2.7</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>2.5</version>
 		</dependency>
 	</dependencies>
 </project>
