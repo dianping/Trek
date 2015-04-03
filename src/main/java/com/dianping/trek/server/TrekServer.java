@@ -1,6 +1,8 @@
 package com.dianping.trek.server;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import org.apache.commons.logging.Log;
@@ -95,17 +97,26 @@ public class TrekServer extends Thread {
             for (int i = 0; i < appArray.length(); i++) {
                 JSONObject appObject;
                 String alias;
-                String logname;
+                JSONArray lognameArray;
                 String key;
+                List<String> lognames;
                 try {
                     appObject = appArray.getJSONObject(i);
                     alias = appObject.getString(Constants.ALIAS_KEY);
-                    logname = appObject.getString(Constants.LOGNAME_KEY);
                     key = appObject.getString(Constants.APPKEY_KEY);
+                    lognameArray = appObject.getJSONArray(Constants.LOGNAMES_KEY);
+                    lognames = new ArrayList<String>();
+                    for (int j = 0; j < lognameArray.length(); j++) {
+                        lognames.add(lognameArray.getString(j));
+                    }
                 } catch (JSONException e) {
+                    LOG.warn("find invalid json", e);
                     continue;
                 }
-                TrekContext.getInstance().setLognameMapping(logname, key);
+                //bind vary logname to one key
+                for (String logname : lognames) {
+                    TrekContext.getInstance().setLognameMapping(logname, key);
+                }
                 int numWorker = CommonUtil.getInteger(appObject, Constants.NUM_WORKER_KEY, Constants.DEFAULT_WORKER_NUMBER);
                 boolean immediateFlush = CommonUtil.getBoolean(appObject, Constants.IMMEDIATE_FLUSH, false);
                 int flushBufferSize = CommonUtil.getInteger(appObject, Constants.FLUSH_BUFFER_SIZE_KEY, Constants.DEFAULT_FLUSH_BUFFER_SIZE);

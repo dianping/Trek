@@ -5,7 +5,7 @@ public class Constants {
     public static final String CAT_DOMAIN_PREFIX = "Cat-Trek-";
     
     public static final String ALIAS_KEY = "alias";
-    public static final String LOGNAME_KEY = "logName";
+    public static final String LOGNAMES_KEY = "logNames";
     public static final String APPKEY_KEY = "key";
     
     public static final String PROCESS_CLASS_KEY = "class";
